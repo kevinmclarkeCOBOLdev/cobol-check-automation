@@ -15,7 +15,7 @@ COBOL Programming
 Course #4 3.2.0|
 251006-1244
 # Set ZOWE_USERNAME
-ZOWE_USERNAME="Z99998"
+ZOWE_USERNAME="Z85096"
 # Make cobolcheck executable
 chmod +x cobolcheck
 echo "Made cobolcheck executable"
