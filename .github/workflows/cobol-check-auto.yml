@@ -3,21 +3,49 @@ name: COBOL Check Automation
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
     
 jobs:
   cobol-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
     - name: Set up Java
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v4
       with:
         java-version: '11'
-    - name: Run COBOL Check
-      env:
-        ZOWE_USERNAME: ${{ secrets.ZOWE_USERNAME }}
-        ZOWE_PASSWORD: ${{ secrets.ZOWE_PASSWORD }}
+        distribution: 'temurin'
+    
+    - name: Download cobolcheck
       run: |
-        # Here we'll add our commands to run cobolcheck
-        echo "Running COBOL Check"
-        # Add actual cobolcheck commands here
+        mkdir -p tools
+        cd tools
+        wget https://github.com/bluewaterltd/cobolcheck/releases/download/v0.2.25/cobolcheck.jar
+        cd ..
+    
+    - name: Run COBOL Check
+      run: |
+        if [ -f tools/cobolcheck.jar ]; then
+          java -jar tools/cobolcheck.jar src/ -json > cobolcheck-results.json
+        else
+          echo "Error: cobolcheck.jar not found"
+          exit 1
+        fi
+    
+    - name: Upload cobolcheck results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: cobolcheck-results
+        path: cobolcheck-results.json
+        retention-days: 30
+    
+    - name: Check cobolcheck results
+      run: |
+        if [ -f cobolcheck-results.json ]; then
+          cat cobolcheck-results.json
+          echo "COBOL Check completed successfully"
+        fi
