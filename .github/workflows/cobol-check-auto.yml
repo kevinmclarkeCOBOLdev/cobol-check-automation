@@ -34,6 +34,14 @@ jobs:
           echo "Error: cobolcheck.jar not found"
           exit 1
         fi
+
+    - name: Setup Mainframe Environment and Upload COBOL Check
+      env:
+        ZOWE_USERNAME: ${{ secrets.ZOWE_USERNAME }}
+        ZOWE_PASSWORD: ${{ secrets.ZOWE_PASSWORD }}
+      run: |
+        chmod +x .github/scripts/zowe_operations.sh
+        .github/scripts/zowe_operations.sh
     
     - name: Upload cobolcheck results
       if: always()
