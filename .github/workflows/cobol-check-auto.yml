@@ -1,0 +1,51 @@
+name: COBOL Check Automation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    
+jobs:
+  cobol-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    
+    - name: Download cobolcheck
+      run: |
+        mkdir -p tools
+        cd tools
+        wget https://github.com/bluewaterltd/cobolcheck/releases/download/v0.2.25/cobolcheck.jar
+        cd ..
+    
+    - name: Run COBOL Check
+      run: |
+        if [ -f tools/cobolcheck.jar ]; then
+          java -jar tools/cobolcheck.jar src/ -json > cobolcheck-results.json
+        else
+          echo "Error: cobolcheck.jar not found"
+          exit 1
+        fi
+    
+    - name: Upload cobolcheck results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: cobolcheck-results
+        path: cobolcheck-results.json
+        retention-days: 30
+    
+    - name: Check cobolcheck results
+      run: |
+        if [ -f cobolcheck-results.json ]; then
+          cat cobolcheck-results.json
+          echo "COBOL Check completed successfully"
+        fi
